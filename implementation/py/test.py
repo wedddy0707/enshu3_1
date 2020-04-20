@@ -35,9 +35,9 @@ tests = (("00000", True),       # 0
          ("1001", True),        # 9
          ("1110101110", True))  # 942
 
-print("is_divisible_by_3".center(70, "-"))
-for string, expected in tests:
-    output,weight,result = transducer.run(string)
-    print("%s: \"%s\"" % (str(result).ljust(5), string))
-    if result != expected:
-        print("ERROR")
+#print("is_divisible_by_3".center(70, "-"))
+#for string, expected in tests:
+#    output,weight,result,state = transducer.closure().run(string)
+#    print("%s: \"%s\"" % (str(result).ljust(5), string))
+#    if result != expected:
+#        print("ERROR")
