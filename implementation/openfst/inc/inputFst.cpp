@@ -106,5 +106,5 @@ void make_fst (
   }
   t.SetFinal(prev_q,1.0);
 
-  t.Write("input_binary.fst");
+  t.Write("inp_binary.fst");
 }
