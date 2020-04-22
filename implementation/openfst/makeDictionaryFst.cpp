@@ -94,6 +94,7 @@ int main() {
     t.AddArc(prev_q, fst::StdArc(ID_OF_EPS,id_of_osymb[s],1.0,q1));
   }
 
+  fst::Closure(&t,(fst::ClosureType)0);
   t.Write("dic_binary.fst");
   return 0;
 }
