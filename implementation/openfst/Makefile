@@ -6,7 +6,7 @@ INP_DIR=./data/inputFst
 INP_ISYMB=$(INP_DIR)/input_isymb.txt
 INP_OSYMB=$(INP_DIR)/input_osymb.txt
 
-all: comp.jpg
+all: result.png
 
 main: main.c inc/*.c* inc/*.h inc/openfst-1.7.7/src/lib/.libs/libfst.so
 	g++ -o $@ -I inc/openfst-1.7.7 $^ -lpthread
@@ -32,14 +32,17 @@ dic_sorted.fst: dic_binary.fst
 
 comp.fst: inp_sorted.fst dic_sorted.fst
 	fstcompose inp_sorted.fst dic_sorted.fst $@
-	# 合成順を間違えたくないので、念のためベタ書き
+# 合成順を間違えたくないので、念のためベタ書き
 
-comp.dot: comp.fst $(INP_ISYMB) $(DIC_OSYMB)
+rmeps.fst: comp.fst
+	fstrmepsilon $< $@
+
+result.dot: rmeps.fst $(INP_ISYMB) $(DIC_OSYMB)
 	fstdraw --isymbols=$(INP_ISYMB) --osymbols=$(DIC_OSYMB) $< $@
 
-comp.jpg: comp.dot
-	dot -Tjpeg $< -o $@
+result.png: result.dot
+	dot -Gdpi=1000 -Tpng $< -o $@
 
 .PHONY:
-clean: main *.dot *.fst *.jpg
+clean: main *.dot *.fst result.png
 	rm -f $^
