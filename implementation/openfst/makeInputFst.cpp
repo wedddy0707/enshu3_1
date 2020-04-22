@@ -86,7 +86,7 @@ int main() {
   }
   t.SetFinal(prev_q,1.0);
 
-  t.Write("binary.fst");
+  t.Write("input_binary.fst");
 
   return 0;
 }
