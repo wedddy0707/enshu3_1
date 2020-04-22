@@ -8,33 +8,59 @@
 #include <set>
 #include <map>
 
-#define STR_LENGTH 600
-#define ID_OF_EPS  0
+#define STR_LENGTH 600 // ファイルを行ごとに読むときのバッファサイズ
+#define ID_OF_EPS  0   // <eps> の ID は 0
+
+FILE* fopen_with_errmsg(const char* path,const char* mode)
+{
+  FILE* fp;
+
+  if((fp = fopen(path,mode)) < 0) {
+    fprintf(stderr,"Failed to Open File. \"%s\" with mode \"%s\"\n", path, mode);
+    exit(EXIT_FAILURE);
+  }
+
+  return fp;
+}
+
+int make_symbs(FILE* fp, std::set<wchar_t>* isymbs, std::set<std::wstring>* osymbs)
+{
+  wchar_t input_string[STR_LENGTH] = L"";
+  
+  // １行ずつ読んでいき、isymbs,osymbs を作る
+  while(fscanf(fp,"%ls",input_string) == 1) {
+    fprintf(stdout,"input lexcon: %ls\n",input_string);
+
+    // isymbs は文字の集合なので、input_string をさらに文字ごとに見ていく
+    for(int i=0; i < STR_LENGTH && input_string[i] != '\0'; i++) {
+      isymbs->insert(input_string[i]);
+    }
+
+    // osymbs は語彙の集合なので、input_string をそのまま追加していく
+    osymbs->insert(input_string);
+  }
+
+  return 0;
+}
+
 
 int main() {
   // localeを日本に設定して、日本語を扱えるようにする
   setlocale(LC_CTYPE, "ja_JP.UTF-8");
 
-  // sample_dictionary.txt をオープン
-  FILE *input_fp;
+  // ./data/sample_dictionary.txt をオープン
+  // iostream, fstream だとうまく行かなかったので
+  // Cのライブラリを愚直に使う作戦
+  FILE *input_fp = fopen_with_errmsg("./data/sample_dictionary.txt","r");
   
-  if((input_fp = fopen("./data/sample_dictionary.txt","r")) < 0) {
-    fprintf(stderr,"ファイルを開けませんでした\n");
-    return EXIT_FAILURE;
-  }
-  
-  // １行ずつ読んでいき、isymbs,osymbs を作る
-  wchar_t input_string[STR_LENGTH] = L"";
+  // isymbs, osymbs を用意する
+  //wchar_t input_string[STR_LENGTH] = L"";
   std::set<wchar_t>      isymbs;
   std::set<std::wstring> osymbs;
-  
-  while(fscanf(input_fp,"%ls",input_string) == 1) {
-    fprintf(stdout,"input lexcon: %ls\n",input_string);
-    for(int i=0; i < STR_LENGTH && input_string[i] != '\0'; i++) {
-      isymbs.insert(input_string[i]);
-    }
-    osymbs.insert(input_string);
-  }
+
+  make_symbs(input_fp, &isymbs, &osymbs);
+
+  // ./data/sample_dictionary.txt の役目終わり. ファイルを閉じる
   fclose(input_fp);
   
   // デバッグ
@@ -42,25 +68,18 @@ int main() {
     fprintf(stdout,"osymb: %ls\n", e.c_str());
   }
 
-  // ファイルに書き込み
-  FILE *isymb_fp;
-  FILE *osymb_fp;
-  
-  std::map<wchar_t,int>      id_of_isymb;
-  std::map<std::wstring,int> id_of_osymb;
+  // isymbs, osymbs をファイルに書き込み
+  FILE *isymb_fp = fopen_with_errmsg("./data/dictionaryFst/dictionary_isymb.txt","w+");
+  FILE *osymb_fp = fopen_with_errmsg("./data/dictionaryFst/dictionary_osymb.txt","w+");
 
-  if((isymb_fp = fopen("./data/dictionaryFst/dictionary_isymb.txt","w+")) < 0) {
-    fprintf(stderr,"ファイルを開けませんでした\n");
-    return EXIT_FAILURE;
-  }
-  if((osymb_fp = fopen("./data/dictionaryFst/dictionary_osymb.txt","w+")) < 0) {
-    fprintf(stderr,"ファイルを開けませんでした\n");
-    return EXIT_FAILURE;
-  }
+  std::map<wchar_t,int>      id_of_isymb; // symb を受け取って ID を返す写像
+  std::map<std::wstring,int> id_of_osymb; // これらは後半で Fst を作るのに必要
   
+  // <eps> の ID は ID_OF_EPS
   fprintf(isymb_fp,"<eps> %d\n",ID_OF_EPS);
   fprintf(osymb_fp,"<eps> %d\n",ID_OF_EPS);
   
+  // その場で、記号の ID を作りながらファイルへ書き込む作戦
   int iid_iter = ID_OF_EPS+1;
   int oid_iter = ID_OF_EPS+1;
   
