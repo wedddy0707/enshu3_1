@@ -35,3 +35,37 @@ https://aghriss.github.io/posts/2018/01/01/OpenFSTubuntu.html
   ```
   $ fstinfo --help
   ```
+
+## 使い方
+
+### 入力文字列の用意
+入力文字列は `./data/sample_input.txt` に保存してください.
+#### 例
+
+```
+すもももももももものうち
+```
+
+### 辞書の用意
+辞書は `./data/sample_dictionary.txt` に保存してください.
+#### 例
+
+```./data/sample_dictionary.txt
+すもも
+もも
+も
+の
+もの
+うち
+```
+
+### 実行
+
+```
+$ make
+$ ls
+comp.fst  data  dic_binary.fst  dic_sorted.fst  inc  inp_binary.fst  inp_sorted.fst  main  main.c  Makefile  README.md  result.dot  result.png  rmeps.fst
+```
+`make` を実行すると `result.png` に結果が出力されます.
+
+
