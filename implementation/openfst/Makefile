@@ -8,8 +8,8 @@ INP_OSYMB=$(INP_DIR)/input_osymb.txt
 
 all: result.png
 
-main: main.c inc/*.c* inc/*.h inc/openfst-1.7.7/src/lib/.libs/libfst.so
-	g++ -o $@ -I inc/openfst-1.7.7 $^ -lpthread
+main: main.c inc/*.c* inc/*.h /usr/local/lib/libfst.so
+	g++ -o $@ $^
 
 inp_binary.fst dic_binary.fst: main
 	./main
