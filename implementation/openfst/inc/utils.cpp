@@ -4,6 +4,7 @@
 #include <wchar.h>
 #include <locale.h>
 
+#include <cmath>
 #include <string>
 #include <set>
 #include <vector>
@@ -39,6 +40,11 @@ std::vector<std::wstring> split(std::wstring str, wchar_t del)
       last = str.size();
     }
   }
+}
+
+double cost_from_frequency(int frequency)
+{
+  return (-1.0) * (double)frequency * std::log((double)frequency);  
 }
 
 wchar_t katakana_of(wchar_t hira) {
