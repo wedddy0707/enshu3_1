@@ -14,9 +14,16 @@
 #define STR_LENGTH 600 // ファイルを行ごとに読むときのバッファサイズ
 #define ID_OF_EPS  0   // <eps> の ID は 0
 
-void make_symbs (
+void make_symbs_from_BCCJ (
       std::set<wchar_t>      *isymbs,
-      std::set<std::wstring> *osymbs
+      std::set<std::wstring> *osymbs,
+      std::map<std::wstring,double> *cost_of_osymb
+);
+
+void make_symbs_from_sample (
+      std::set<wchar_t>      *isymbs,
+      std::set<std::wstring> *osymbs,
+      std::map<std::wstring,double> *cost_of_osymb
 );
 void make_ids (
       std::set<wchar_t>          isymbs,
@@ -30,7 +37,8 @@ void make_symbol_file (
 );
 void make_fst (
       std::map<wchar_t,int>      id_of_isymb,
-      std::map<std::wstring,int> id_of_osymb
+      std::map<std::wstring,int> id_of_osymb,
+      std::map<std::wstring,double> cost_of_osymb
 );
 
 namespace dicFst {
@@ -39,23 +47,57 @@ namespace dicFst {
     std::set<std::wstring> osymbs;
     std::map<wchar_t,int>      id_of_isymb;
     std::map<std::wstring,int> id_of_osymb;
+    std::map<std::wstring,double> cost_of_osymb;
 
     setlocale(LC_CTYPE, "ja_JP.UTF-8");
     
-    make_symbs(&isymbs, &osymbs);
+    //make_symbs_from_sample(&isymbs, &osymbs,&cost_of_osymb);
+    make_symbs_from_BCCJ(&isymbs, &osymbs,&cost_of_osymb);
 
     make_ids(isymbs,osymbs,&id_of_isymb,&id_of_osymb);
 
     make_symbol_file(id_of_isymb,id_of_osymb);
 
-    make_fst(id_of_isymb,id_of_osymb);
+    make_fst(id_of_isymb,id_of_osymb,cost_of_osymb);
   }
 }
 
-
-void make_symbs (
+void make_symbs_from_BCCJ (
       std::set<wchar_t>      *isymbs,
-      std::set<std::wstring> *osymbs
+      std::set<std::wstring> *osymbs,
+      std::map<std::wstring,double> *cost_of_osymb
+)
+{
+  FILE *fp = fopen_with_errmsg("./data/BCCWJ_frequencylist_suw_ver1_0.tsv","r");
+  fwide(fp,1);
+  
+  wchar_t input_string[STR_LENGTH] = L"";
+
+  int rank;
+  
+  // １行ずつ読んでいき、isymbs,osymbs を作る
+
+  while(fgetws(input_string,STR_LENGTH,fp) != NULL) {
+    std::vector<std::wstring> line = split(input_string,L'\t');
+    std::wstring lemma = line[2];
+    int           freq = std::stoi(line[6]);
+
+    // isymbs は文字の集合なので、lemma をさらに文字ごとに見ていく
+    for(auto x : lemma) {
+      isymbs->insert(x);
+    }
+
+    // osymbs は語彙の集合なので、lemma をそのまま追加していく
+    osymbs->insert(lemma);
+    (*cost_of_osymb)[lemma] = cost_from_frequency(freq);
+  }
+  fclose(fp);
+}
+
+void make_symbs_from_sample (
+      std::set<wchar_t>      *isymbs,
+      std::set<std::wstring> *osymbs,
+      std::map<std::wstring,double> *cost_of_osymb
 )
 {
   FILE *fp = fopen_with_errmsg("./data/sample_dictionary.txt","r");
@@ -73,6 +115,7 @@ void make_symbs (
 
     // osymbs は語彙の集合なので、input_string をそのまま追加していく
     osymbs->insert(input_string);
+    (*cost_of_osymb)[input_string] = 0.0;
   }
   fclose(fp);
 }
@@ -121,7 +164,8 @@ void make_symbol_file (
 
 void make_fst (
       std::map<wchar_t,int>      id_of_isymb,
-      std::map<std::wstring,int> id_of_osymb
+      std::map<std::wstring,int> id_of_osymb,
+      std::map<std::wstring,double> cost_of_osymb
 )
 {
   fst::StdVectorFst t;
@@ -149,7 +193,7 @@ void make_fst (
     }
     int    i = ID_OF_EPS;
     int    o = iter.second;
-    double w = 0.0;
+    double w = cost_of_osymb[iter.first];
 
     t.AddArc(prev_q, fst::StdArc(i,o,w,q1));
   }
