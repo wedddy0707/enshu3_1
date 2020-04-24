@@ -40,6 +40,8 @@ std::vector<std::wstring> split(std::wstring str, wchar_t del)
       last = str.size();
     }
   }
+
+  return result;
 }
 
 double cost_from_frequency(int frequency)
