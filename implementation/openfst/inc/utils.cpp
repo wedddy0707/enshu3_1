@@ -23,10 +23,15 @@ FILE* fopen_with_errmsg(const char* path,const char* mode)
 
 std::vector<std::wstring> split(std::wstring str, wchar_t del)
 {
+  std::vector<std::wstring> result;
+  
   int first = 0;
   int last  = str.find_first_of(del);
 
-  std::vector<std::wstring> result;
+  if (last == std::wstring::npos) {
+    result.push_back(str);
+    return result;
+  }
 
   while (first < str.size()) {
     std::wstring subStr(str, first, last - first);
