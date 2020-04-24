@@ -53,6 +53,10 @@ double cost_from_frequency(int frequency)
 {
   return (-1.0) * (double)frequency * std::log((double)frequency);  
 }
+double cost_from_probability(double p)
+{
+  return 1.0 / p;
+}
 
 wchar_t katakana_of(wchar_t hira) {
   return hira + (L'ア'-L'あ');

@@ -11,7 +11,8 @@
 #include <map>
 #include "utils.h"
 
-#define STR_LENGTH 600 // ファイルを行ごとに読むときのバッファサイズ
+#define LEX_LIMIT  10
+#define STR_LENGTH 1000 // ファイルを行ごとに読むときのバッファサイズ
 #define ID_OF_EPS  0   // <eps> の ID は 0
 
 void make_symbs_from_BCCJ (
@@ -50,7 +51,8 @@ namespace dicFst {
     std::map<std::wstring,double> cost_of_osymb;
 
     setlocale(LC_CTYPE, "ja_JP.UTF-8");
-    
+
+    printf("make_symbs_from_BCCJ\n");
     //make_symbs_from_sample(&isymbs, &osymbs,&cost_of_osymb);
     make_symbs_from_BCCJ(&isymbs, &osymbs,&cost_of_osymb);
 
@@ -75,12 +77,18 @@ void make_symbs_from_BCCJ (
 
   int rank;
   
-  // １行ずつ読んでいき、isymbs,osymbs を作る
+  // 最初の行は捨てる
+  fgetws(input_string,STR_LENGTH,fp);
+  fputws(input_string,           stdout);
 
+  // １行ずつ読んでいき、isymbs,osymbs を作る
   while(fgetws(input_string,STR_LENGTH,fp) != NULL) {
-    std::vector<std::wstring> line = split(input_string,L'\t');
+    std::vector<std::wstring> line = split(std::wstring(input_string),L'\t');
     std::wstring lemma = line[2];
-    int           freq = std::stoi(line[6]);
+    int           freq = (int)std::wcstol(line[6].c_str(),NULL,10);
+
+    fputws(line[2].c_str(),stdout);
+    fputws(L"\n",stdout);
 
     // isymbs は文字の集合なので、lemma をさらに文字ごとに見ていく
     for(auto x : lemma) {
@@ -89,7 +97,11 @@ void make_symbs_from_BCCJ (
 
     // osymbs は語彙の集合なので、lemma をそのまま追加していく
     osymbs->insert(lemma);
-    (*cost_of_osymb)[lemma] = cost_from_frequency(freq);
+    (*cost_of_osymb)[lemma] = 0.0;//cost_from_frequency(freq);
+
+    if (std::wcstol(line[0].c_str(),NULL,10) >= LEX_LIMIT) {
+      break;
+    }
   }
   fclose(fp);
 }

@@ -1,14 +1,12 @@
-DIC_DIR=./data/dictionaryFst
-DIC_ISYMB=$(DIC_DIR)/dictionary_isymb.txt
-DIC_OSYMB=$(DIC_DIR)/dictionary_osymb.txt
+DIC_ISYMB=./data/character_symbols.txt
+DIC_OSYMB=./data/word_symbols.txt
 
-INP_DIR=./data/inputFst
-INP_ISYMB=$(INP_DIR)/input_isymb.txt
-INP_OSYMB=$(INP_DIR)/input_osymb.txt
+INP_ISYMB=./data/character_symbols.txt
+INP_OSYMB=./data/character_symbols.txt
 
-all: result.png
+all: result.png #dic.png inp.png
 
-main: main.c inc/*.c* inc/*.h /usr/local/lib/libfst.so
+main: main.cpp inc/*.c* inc/*.h /usr/local/lib/libfst.so
 	g++ -o $@ $^
 
 inp_binary.fst dic_binary.fst: main
@@ -20,10 +18,10 @@ dic_binary.dot: dic_binary.fst $(DIC_ISYMB) $(DIC_OSYMB)
 inp_binary.dot: inp_binary.fst $(INP_ISYMB) $(INP_OSYMB)
 	fstdraw --isymbols=$(INP_ISYMB) --osymbols=$(INP_OSYMB) $< $@
 
-dic.jpg: dic_binary.dot
-	dot -Tjpeg $< -o $@
-inp.jpg: inp_binary.dot
-	dot -Tjpeg $< -o $@
+#dic.png: dic_binary.dot
+#	dot -Gdpi=300 -Tpng $< -o $@
+inp.png: inp_binary.dot
+	dot -Tpng $< -o $@
 
 inp_sorted.fst: inp_binary.fst
 	fstarcsort --sort_type=olabel $< $@
@@ -41,8 +39,8 @@ result.dot: rmeps.fst $(INP_ISYMB) $(DIC_OSYMB)
 	fstdraw --isymbols=$(INP_ISYMB) --osymbols=$(DIC_OSYMB) $< $@
 
 result.png: result.dot
-	dot -Gdpi=1000 -Tpng $< -o $@
+	dot -Gdpi=500 -Tpng $< -o $@
 
 .PHONY:
-clean: main *.dot *.fst result.png
+clean: main *.dot *.fst *.png
 	rm -f $^
