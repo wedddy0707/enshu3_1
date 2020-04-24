@@ -14,27 +14,21 @@
 #define STR_LENGTH 600 // ファイルを行ごとに読むときのバッファサイズ
 #define ID_OF_EPS  0   // <eps> の ID は 0
 
-void make_symbs_for_dictionary (
+void make_symbs (
       std::set<wchar_t>      *isymbs,
       std::set<std::wstring> *osymbs
 );
-void make_ids_for_dictionary (
+void make_ids (
       std::set<wchar_t>          isymbs,
       std::set<std::wstring>     osymbs,
       std::map<wchar_t,int>     *id_of_isymb,
       std::map<std::wstring,int>*id_of_osymb
 );
-void make_ids_for_dictionary (
-      std::set<wchar_t>          isymbs,
-      std::set<std::wstring>     osymbs,
-      std::map<wchar_t,int>     *id_of_isymb,
-      std::map<std::wstring,int>*id_of_osymb
-);
-void make_symbol_file_for_dictionary (
+void make_symbol_file (
       std::map<wchar_t,int>      id_of_isymb,
       std::map<std::wstring,int> id_of_osymb
 );
-void make_fst_for_dictionary (
+void make_fst (
       std::map<wchar_t,int>      id_of_isymb,
       std::map<std::wstring,int> id_of_osymb
 );
@@ -48,18 +42,18 @@ namespace dicFst {
 
     setlocale(LC_CTYPE, "ja_JP.UTF-8");
     
-    make_symbs_for_dictionary(&isymbs, &osymbs);
+    make_symbs(&isymbs, &osymbs);
 
-    make_ids_for_dictionary(isymbs,osymbs,&id_of_isymb,&id_of_osymb);
+    make_ids(isymbs,osymbs,&id_of_isymb,&id_of_osymb);
 
-    make_symbol_file_for_dictionary(id_of_isymb,id_of_osymb);
+    make_symbol_file(id_of_isymb,id_of_osymb);
 
-    make_fst_for_dictionary(id_of_isymb,id_of_osymb);
+    make_fst(id_of_isymb,id_of_osymb);
   }
 }
 
 
-void make_symbs_for_dictionary (
+void make_symbs (
       std::set<wchar_t>      *isymbs,
       std::set<std::wstring> *osymbs
 )
@@ -83,7 +77,7 @@ void make_symbs_for_dictionary (
   fclose(fp);
 }
 
-void make_ids_for_dictionary (
+void make_ids (
       std::set<wchar_t>          isymbs,
       std::set<std::wstring>     osymbs,
       std::map<wchar_t,int>     *id_of_isymb,
@@ -102,7 +96,7 @@ void make_ids_for_dictionary (
   }
 }
 
-void make_symbol_file_for_dictionary (
+void make_symbol_file (
       std::map<wchar_t,int>      id_of_isymb,
       std::map<std::wstring,int> id_of_osymb
 )
@@ -125,7 +119,7 @@ void make_symbol_file_for_dictionary (
   fclose(osymb_fp);
 }
 
-void make_fst_for_dictionary (
+void make_fst (
       std::map<wchar_t,int>      id_of_isymb,
       std::map<std::wstring,int> id_of_osymb
 )
