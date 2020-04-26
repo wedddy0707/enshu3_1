@@ -4,7 +4,7 @@ DIC_OSYMB=./data/word_symbols.txt
 INP_ISYMB=./data/character_symbols.txt
 INP_OSYMB=./data/character_symbols.txt
 
-all: result.png #dic.png inp.png
+all: result.png shortest.png inp.png #dic.png
 
 main: main.cpp inc/*.c* inc/*.h /usr/local/lib/libfst.so
 	g++ -o $@ $^
@@ -41,6 +41,15 @@ result.dot: rmeps.fst $(INP_ISYMB) $(DIC_OSYMB)
 result.png: result.dot
 	dot -Gdpi=500 -Tpng $< -o $@
 
-.PHONY:
-clean: main *.dot *.fst *.png
-	rm -f $^
+shortest_path.fst: rmeps.fst
+	fstshortestpath --nshortest=1 $< $@
+
+shortest.dot: shortest_path.fst $(INP_ISYMB) $(DIC_OSYMB)
+	fstdraw --isymbols=$(INP_ISYMB) --osymbols=$(DIC_OSYMB) $< $@
+
+shortest.png: shortest.dot
+	dot -Gdpi=500 -Tpng $< -o $@
+
+.PHONY: clean
+clean: 
+	rm -f main *.dot *.fst *.png
