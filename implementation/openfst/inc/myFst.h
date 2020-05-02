@@ -15,6 +15,10 @@ namespace myFst {
   void inputFst (
         std::map<wchar_t,int> id_of_character
   );
+  void haikuFst (
+        std::map<std::wstring,int> id_of_word,
+        std::map<std::wstring,std::wstring> mora_of_word
+  );
   void make (
         std::map<wchar_t,int>         id_of_character,
         std::map<std::wstring,int>    id_of_word,

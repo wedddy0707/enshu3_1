@@ -94,15 +94,4 @@ namespace myFst {
   
     t.Write("inp_binary.fst");
   }
-
-  void make (
-        std::map<wchar_t,int>         id_of_character,
-        std::map<std::wstring,int>    id_of_word,
-        std::map<std::wstring,double> cost_of_word
-  )
-  {
-    setlocale(LC_CTYPE, "ja_JP.UTF-8");
-    inputFst(id_of_character);
-    dictionaryFst (id_of_character, id_of_word, cost_of_word);
-  }
 }
