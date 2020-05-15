@@ -36,6 +36,7 @@ https://aghriss.github.io/posts/2018/01/01/OpenFSTubuntu.html
   $ fstinfo --help
   ```
 
+7. 同様に、openGrm をインストールしてください。
 ## 使い方
 
 ### 入力文字列の用意

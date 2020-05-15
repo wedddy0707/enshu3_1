@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
       if (not fin[i]) {
         // 各行は word_1<space>...<space>word_n<tab>frequency と書かれている.
         // <tab> で split する.
-        std::vector<std::wstring> l = split(line[i],L'\t');
+        std::vector<std::wstring> l = split(line[i],L"\t");
         // map に入れることで words に関してソートされるはず.
         m[l[0]] = i;
       }

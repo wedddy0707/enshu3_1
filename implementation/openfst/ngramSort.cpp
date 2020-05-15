@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
   std::map<std::wstring,int> lines;
   wchar_t line[100];
   while(fgetws(line,100,fp)!=NULL) {
-    std::vector<std::wstring> words_and_freq = split(std::wstring(line),L'\t');
+    std::vector<std::wstring> words_and_freq = split(line,L"\t");
     lines[words_and_freq[0]] = (int)std::wcstol(words_and_freq[1].c_str(),NULL,10);
   }
 

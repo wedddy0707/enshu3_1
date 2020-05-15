@@ -7,9 +7,11 @@
 #include <vector>
 
 FILE* fopen_with_errmsg(const char* path,const char* mode);
+int put_warning(const std::string&,const std::wstring&);
 
-std::vector<std::wstring> split(std::wstring str, wchar_t del);
-std::wstring join(const std::vector<std::wstring>& v, const wchar_t* delim = 0);
+std::vector<std::wstring> split(const std::wstring&,const wchar_t*);
+std::wstring join(const std::vector<std::wstring>&, const wchar_t*);
+std::wstring find_and_erase(const std::wstring&, const wchar_t*);
 
 double cost_from_frequency(int frequency);
 double cost_from_probability(double p);

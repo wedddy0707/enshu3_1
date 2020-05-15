@@ -8,15 +8,15 @@
 
 namespace myFst {
   void haikuPrefixFst (
-      const std::string&                wsymb_path,
-      const std::vector<std::wstring>&  words,
-      const std::string&                fst_name
+      const std::string&,
+      const std::string&,
+      const std::string&
       );
 
   void haikuJudgeFst (
-      const std::string& wsymb_path,
-      const std::string& wpron_path,
-      const std::string&   fst_name
+      const std::string&,
+      const std::string&,
+      const std::string&
       );
 }
 #endif

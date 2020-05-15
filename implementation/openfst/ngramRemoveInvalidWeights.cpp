@@ -47,19 +47,24 @@ int main(int argc, char *argv[])
 
   wchar_t line[100];
   while(fgetws(line,100,ifp)!=NULL) {
-    std::vector<std::wstring> l = split(std::wstring(line),L'\t');
+    std::vector<std::wstring> l = split(line,L"\t");
     
     if(l[l.size()-1]==L"BadNumber\n") {
       l[l.size()-1] = L"0.0\n";
       fputws(join(l,L"\t").c_str(),ofp);
-      fputws(L"Warning: BadNumber detected.\n",stderr);
+      put_warning(argv[0],
+          L"Warning: BadNumber Detected in "+
+          std::wstring(find_and_erase(line,L"\n"))+
+          L". Interpret it as 0.0\n"
+          );
     } else if (l[l.size()-1]==L"Infinity\n") {
       // 重さ無限の辺など、存在しないのと一緒なので消す.
-      fputws(L"Warning: Infinity detected.\n",stderr);
-    } else if (l[l.size()-1]==L"-Infinity\n") {
-      fputws(L"Warning: -Infinity detected.\n",stderr);
+      put_warning(argv[0],L"Warning: Infinity Detected in "+std::wstring(line));
     } else {
-      l[l.size()-1] = std::to_wstring(1.0 / exp((double)std::wcstol(l[l.size()-1].c_str(),NULL,10)))+L"\n";
+      wchar_t* end;
+      double   log_prop = (-1.0)*(double)std::wcstod(l[l.size()-1].c_str(),&end);
+
+      l[l.size()-1] = std::to_wstring(log_prop)+L"\n";
       fputws(join(l,L"\t").c_str(),ofp);
     }
   }

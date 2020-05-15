@@ -10,7 +10,7 @@
 #include <algorithm>
 #include "utils.h"
 
-#define LEX_LIMIT  10000
+#define LEX_LIMIT  100000
 #define STR_LENGTH 1000 // ファイルを行ごとに読むときのバッファサイズ
 
 typedef std::wstring wstr_t;
@@ -33,42 +33,41 @@ namespace symbol {
                 std::max ((int)ID_OF_0B0,
                           (int)ID_OF_0B1))))) + 1;
   }
-  
+
+
   void make_symbs_from_BCCJ (
-        std::set<wchar_t>             *characters,
-        std::set<std::wstring>        *words,
-        std::map<std::wstring,double> *cost_of_word,
-        std::map<std::wstring,std::wstring> *pron_of_word
+        std::set<wchar_t>&       characters,
+        std::set<wstr_t>&        words,
+        std::map<wstr_t,double>& cost_of_word,
+        std::map<wstr_t,wstr_t>& pron_of_word
   )
   {
     FILE *fp = fopen_with_errmsg("./data/BCCWJ_frequencylist_suw_ver1_0.tsv","r");
     fwide(fp,1);
     
     wchar_t input_string[STR_LENGTH] = L"";
-  
-    int rank;
     
     // 最初の行は捨てる
     fgetws(input_string,STR_LENGTH,fp);
     fputws(input_string,       stdout);
   
     while(fgetws(input_string,STR_LENGTH,fp) != NULL) {
-      std::vector<std::wstring> line = split(std::wstring(input_string),L'\t');
+      std::vector<std::wstring> line = split(std::wstring(input_string),L"\t");
       std::wstring lForm = line[1];
       std::wstring lemma = line[2];
-      double         pmw = (double)std::wcstol(line[7].c_str(),NULL,10);
-      int           freq = (int)std::wcstol(line[6].c_str(),NULL,10);
   
       fputws(line[2].c_str(),stdout);
       fputws(L"\n",stdout);
   
       for(auto x : lemma) {
-        characters->insert(x);
+        characters.insert(x);
       }
-  
-      words->insert(lemma);
-      (*cost_of_word)[lemma] = 1.0 / (double)freq;//cost_from_frequency(pmw / 1000000.0);
-      (*pron_of_word)[lemma] = lForm;
+ 
+      words.insert(lemma);
+
+      if((pron_of_word.find(lemma)==pron_of_word.end())) {
+        pron_of_word[lemma] = lForm;
+      }
   
       if (std::wcstol(line[0].c_str(),NULL,10) >= LEX_LIMIT) {
         break;
@@ -78,38 +77,38 @@ namespace symbol {
   }
   
   void make_ids (
-        std::set<wchar_t>          characters,
-        std::set<std::wstring>     words,
-        std::map<wchar_t,int>     *id_of_character,
-        std::map<std::wstring,int>*id_of_word
+        const std::set<wchar_t>&      characters,
+        const std::set<std::wstring>& words,
+        std::map<wchar_t,int>&        id_of_character,
+        std::map<std::wstring,int>&   id_of_word
   )
   {
     int id_iter = min_id();
-    for(auto x : characters) {
-      (*id_of_character)[x] = id_iter;
+    for(const auto& x : characters) {
+      id_of_character[x] = id_iter;
       id_iter++;
     }
     id_iter = min_id();
-    for(auto x : words) {
-      (*id_of_word)[x] = id_iter;
+    for(const auto& x : words) {
+      id_of_word[x] = id_iter;
       id_iter++;
     }
   }
   
   void make_character_symbols_file (
-        std::map<wchar_t,int>      id_of_character
+        const std::map<wchar_t,int>& id_of_character
   )
   {
     FILE *fp = fopen_with_errmsg("./character_symbols.txt","w+");
     fprintf(fp,"<eps> %d\n",ID_OF_EPS); // epsilon
     fprintf(fp,"<unk> %d\n",ID_OF_UNK); // unknown character
-    for(auto x : id_of_character) {
+    for(const auto& x : id_of_character) {
       fprintf(fp,"%lc %d\n",x.first,x.second);
     }
     fclose(fp);
   }
   void make_word_symbols_file (
-        std::map<std::wstring,int> id_of_word
+        const std::map<wstr_t,int>& id_of_word
   )
   {
     FILE *fp = fopen_with_errmsg("./word_symbols.txt","w+");
@@ -117,7 +116,9 @@ namespace symbol {
     fprintf(fp,"<unk> %d\n",ID_OF_UNK); // unknown character
     fprintf(fp,"<S> %d\n",  ID_OF_BOS); // mark of "beginning of sentence"
     fprintf(fp,"</S> %d\n", ID_OF_EOS); // mark of "end of sentence"
-    for(auto x : id_of_word) {
+    fprintf(fp,"0 %d\n",ID_OF_0B0);
+    fprintf(fp,"1 %d\n",ID_OF_0B1);
+    for(const auto& x : id_of_word) {
       fprintf(fp,"%ls %d\n",x.first.c_str(),x.second);
     }
     fclose(fp);
@@ -133,8 +134,8 @@ namespace symbol {
   }
 
   void make_symbol_file (
-        std::map<wchar_t,int>      id_of_character,
-        std::map<std::wstring,int> id_of_word
+        const std::map<wchar_t,int>& id_of_character,
+        const std::map<wstr_t ,int>& id_of_word
   )
   {
     make_character_symbols_file(id_of_character);
@@ -143,11 +144,11 @@ namespace symbol {
   }
   
   void make_pron_file (
-      std::map<std::wstring,std::wstring> pron_of_word
+      const std::map<wstr_t,wstr_t>& pron_of_word
   )
   {
     FILE *fp = fopen_with_errmsg("./word_prons.txt","w+");
-    for(auto x : pron_of_word) {
+    for(const auto& x : pron_of_word) {
       fprintf(fp,"%ls %ls\n",x.first.c_str(),x.second.c_str());
     }
     fclose(fp);
@@ -168,8 +169,8 @@ namespace symbol {
     std::map<std::wstring,int>          id_of_word      ;
 
     setlocale(LC_CTYPE, "ja_JP.UTF-8");
-    make_symbs_from_BCCJ(&characters,&words,&cost_of_word,&pron_of_word);
-    make_ids(characters,words,&id_of_character,&id_of_word);
+    make_symbs_from_BCCJ(characters,words,cost_of_word,pron_of_word);
+    make_ids(characters,words,id_of_character,id_of_word);
     make_symbol_file(id_of_character,id_of_word);
     make_pron_file(pron_of_word);
   }

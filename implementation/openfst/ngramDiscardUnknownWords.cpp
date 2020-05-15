@@ -59,20 +59,18 @@ int main(int argc, char *argv[])
   
   wchar_t line[100];
   while(fgetws(line,100,ifp)!=NULL) {
-    std::vector<std::wstring> words_and_freq = split(std::wstring(line),L'\t');
-    std::vector<std::wstring> words          = split(words_and_freq[0] ,L' ');
+    std::vector<std::wstring> words_and_freq = split(std::wstring(line),L"\t");
+    std::vector<std::wstring> words          = split(words_and_freq[0] ,L" ");
 
-    //std::wstring shrink_freq = std::to_wstring((int)std::wcstol(words_and_freq[1].c_str(),NULL,10) / 1000);
     bool unknown = false;
     for(auto w : words) {
-      unknown = unknown | (id_of_word.find(w)==id_of_word.end());
+      if(unknown = unknown | (id_of_word.find(w)==id_of_word.end())) break;
     }
+
     if(not unknown) {
-      //fputws(words_and_freq[0].c_str(),ofp);
-      //fputws(L"\t",ofp);
-      //fputws(shrink_freq.c_str(),ofp);
-      //fputws(L"\n",ofp);
       fputws(line,ofp);
+    } else {
+      put_warning(argv[0],L"Unknown Word Detected in "+join(words,L","));
     }
   }
 

@@ -9,6 +9,10 @@
 #include <set>
 #include <vector>
 
+/*********************************************************
+ * About I/O
+ *
+ */
 FILE* fopen_with_errmsg(const char* path,const char* mode)
 {
   FILE* fp;
@@ -21,7 +25,29 @@ FILE* fopen_with_errmsg(const char* path,const char* mode)
   return fp;
 }
 
-std::vector<std::wstring> split(std::wstring str, wchar_t del)
+int put_warning(const std::string& program_name,const std::wstring& msg) {
+  wchar_t w_pname[30];
+  
+  // convert string "program_name" into wstring.
+  mbstowcs(w_pname,program_name.c_str(),30); // mbstowcs() in <stdlib.h>
+
+  // make sure that the end of w_pname is NULL.
+  w_pname[29] = L'\0'; 
+  
+  // complete the message with the program name and newline.
+  std::wstring complete_msg = std::wstring(w_pname)+L": "+msg+L"\n";
+  
+  // put the message on stderr.
+  fputws(complete_msg.c_str(),stderr);
+
+  return 0;
+}
+
+/*********************************************************
+ * About operation on strings/wstrings
+ *
+ */
+std::vector<std::wstring> split(const std::wstring& str, const wchar_t* del)
 {
   std::vector<std::wstring> result;
   
@@ -29,7 +55,10 @@ std::vector<std::wstring> split(std::wstring str, wchar_t del)
   int last  = str.find_first_of(del);
 
   if (last == std::wstring::npos) {
-    result.push_back(str);
+    if (str != L"") {
+      result.push_back(str);
+    }
+
     return result;
   }
 
@@ -59,6 +88,17 @@ std::wstring join(const std::vector<std::wstring>& v, const wchar_t* delim = 0) 
     }
   }
   return s;
+}
+
+std::wstring find_and_erase(const std::wstring& s, const wchar_t* targets = 0) {
+  std::wstring result = s;
+
+  size_t c;
+  while((c = result.find_first_of(targets)) != std::wstring::npos) {
+    result.erase(c,1);
+  }
+  
+  return result;
 }
 
 double cost_from_frequency(int frequency)
@@ -105,7 +145,7 @@ int num_of_moras_of(std::wstring word) {
     if((is_katakana(c) or is_hiragana(c)) and not is_lower_kana(c)) {
       n++;
     }
-    else if(c==L'ッ' or c==L'っ') {
+    else if(c==L'ッ' or c==L'っ' or c==L'ー') {
       n++;
     }
   }

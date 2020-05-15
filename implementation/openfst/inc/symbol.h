@@ -17,20 +17,20 @@ namespace symbol {
   int min_id();
 
   void make_symbs_from_BCCJ (
-        std::set<wchar_t>             *characters,
-        std::set<std::wstring>        *words,
-        std::map<std::wstring,double> *cost_of_word,
-        std::map<std::wstring,std::wstring> *mora_of_word
+        std::set<wchar_t>&             characters,
+        std::set<std::wstring>&        words,
+        std::map<std::wstring,double>& cost_of_word,
+        std::map<std::wstring,std::wstring>& mora_of_word
   );
   void make_ids (
-        std::set<wchar_t>          characters,
-        std::set<std::wstring>     words,
-        std::map<wchar_t,int>     *id_of_character,
-        std::map<std::wstring,int>*id_of_word
+        const std::set<wchar_t>&      characters,
+        const std::set<std::wstring>& words,
+        std::map<wchar_t,int>&        id_of_character,
+        std::map<std::wstring,int>&   id_of_word
   );
   void make_symbol_file (
-        std::map<wchar_t,int>      id_of_character,
-        std::map<std::wstring,int> id_of_word
+        const std::map<wchar_t,int>&      id_of_character,
+        const std::map<std::wstring,int>& id_of_word
   );
   void makeMapFromSymbFile(std::string,std::map<wchar_t,int> *);
   void makeMapFromSymbFile(std::string,std::map<std::wstring,int> *);

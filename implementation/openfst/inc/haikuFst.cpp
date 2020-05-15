@@ -11,6 +11,30 @@
 #include "utils.h"
 #include "symbol.h"
 
+bool is_kireji(const std::wstring& word) {
+  if (word==L"や" or
+      word==L"かな" or
+      word==L"けり" or
+      word==L"なり" or
+      word==L"ぞ" or
+      word==L"かも") {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool is_joshi(const std::wstring& word) {
+  return
+    word==L"の" or
+    word==L"が" or
+    word==L"と" or
+    word==L"に" or
+    word==L"は" or
+    word==L"で" or
+    false;
+}
+
 namespace myFst {
   fst::VectorFst<fst::StdArc> moraFst_with_random_delimit (
       const std::map<std::wstring,int>&          id_of_word,
@@ -35,7 +59,7 @@ namespace myFst {
       
       t.AddArc(q0,fst::StdArc(id,symbol::ID_OF_EPS,0.0,prev_q));
 
-      if (moras > 1) {
+      if (not is_joshi(word)) {
         t.AddArc(q0,fst::StdArc(id,symbol::ID_OF_0B0,0.0,prev_q));
       }
 
@@ -79,32 +103,72 @@ namespace myFst {
 
     return t;
   }
+  
+  fst::VectorFst<fst::StdArc> fst_011111011111110111110111111101111111()
+  {
+    fst::VectorFst<fst::StdArc> t; // 011111011111110111110111111101111111 を受理するFst
+
+    int prev_q = t.AddState();
+    t.SetStart(prev_q);
+
+    for(int i = 0; i < 1+5+1+7+1+5+1+7+1+7; i++) {
+      int  next_q  = t.AddState();
+      int isymb_id =
+        (i==0 | i==1+5 | i==1+5+1+7 | i==1+5+1+7+1+5 | i==1+5+1+7+1+5+1+7)
+        ? symbol::ID_OF_0B0
+        : symbol::ID_OF_0B1;
+      
+      t.AddArc(prev_q,fst::StdArc(isymb_id,symbol::ID_OF_EPS,0.0,next_q));
+      
+      prev_q = next_q;
+    }
+    t.SetFinal(prev_q,0.0);
+
+    return t;
+  }
 
   void haikuPrefixFst (
       const std::string& wsymb_path,
-      const std::vector<std::wstring>& words = {L"米"},
-      const std::string& fst_name = "haikuPrefix.fst"
+      const std::string& input_file_path,
+      const std::string& fst_name = "haiku_prefix.fst"
   )
   {
-    std::map<std::wstring,int> id_of_word;
     fst::VectorFst<fst::StdArc> t;
+    std::map<std::wstring,int> id_of_word;
 
     setlocale(LC_CTYPE, "ja_JP.UTF-8");
     
     symbol::makeMapFromSymbFile(wsymb_path,&id_of_word);
     
+    FILE* fp = fopen_with_errmsg(input_file_path.c_str(),"r");
+
+    wchar_t str[100];
+    
+    fgetws(str,100,fp);
+
+    std::vector<std::wstring> prefix_words = split(find_and_erase(str,L"\n"),L" ");
+
     int prev_q = t.AddState(); t.SetStart(prev_q);
     
-    for(const auto& w : words) {
-      if(id_of_word.at(w) < symbol::min_id()) {continue;}
-      int next_q = t.AddState();
-      t.AddArc(prev_q,fst::StdArc(id_of_word.at(w),id_of_word.at(w),0.0,next_q));
+    for(const auto& w : prefix_words) {
+      int id;
+      if (w==L"\n") {
+        continue;
+      } else if (id_of_word.find(w)==id_of_word.end()) { // Unknown Character
+        continue;
+      } else {
+        id = id_of_word.at(w);
+      }
+
+      int    next_q = t.AddState();
+      t.AddArc(prev_q,fst::StdArc(id,id,0.0,next_q));
       prev_q = next_q;
     }
     t.SetFinal(prev_q);
 
-    for(const auto& iter : id_of_word) {
-      t.AddArc(prev_q,fst::StdArc(iter.second,iter.second,0.0,prev_q));
+    for(const auto& w : id_of_word) {
+      const int& id = w.second;
+      t.AddArc(prev_q,fst::StdArc(id,id,0.0,prev_q));
     }
 
     t.Write(fst_name);

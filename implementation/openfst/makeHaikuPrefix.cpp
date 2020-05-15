@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <wchar.h>
 #include <string>
 #include <vector>
@@ -6,8 +7,10 @@
 
 int main(int argc,char *argv[])
 {
-  std::string wsymb_path;
-  std::string fst_name;
+  std::string  wsymb_path       = "./word_symbols.txt";
+  std::string  fst_name         = "./haiku_prefix.fst";
+  std::string  input_file_path  = "./data/sample_input.txt";
+  std::wstring prefix;
 
   for(int i = 0; i < argc; i++) {
     if (*argv[i]=='-') {
@@ -18,6 +21,9 @@ int main(int argc,char *argv[])
       switch(*(argv[i]+1)) {
         case 'w':
           wsymb_path = target;
+          break;
+        case 'i':
+          input_file_path = target;
           break;
         case 'o':
           fst_name = target;
@@ -30,7 +36,7 @@ int main(int argc,char *argv[])
 
   myFst::haikuPrefixFst(
       wsymb_path,
-      std::vector<std::wstring>({L"君",L"が",L"持つ"}),
+      input_file_path,
       fst_name
       );
 
