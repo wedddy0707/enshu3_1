@@ -5,14 +5,29 @@ INPUT_STR=./data/sample_input.txt
 HAIKU_PRF=./data/haiku_prefix.txt
 CONTEXT=./data/context.txt
 
-# シンボルファイルなど
+########################
+#### 辞書用のデータ ####
+########################
+BCCWJ_LIST=$(DATA_DIR)/BCCWJ_frequencylist_suw_ver1_0.tsv
+
+#########################################
+#### N-Gram データ加工用のプログラム ####
+#########################################
+NGRAM_SORT                  =ngramSort
+NGRAM_MERGE                 =ngramMerge
+NGRAM_EXTRACT               =ngramExtract.sh
+NGRAM_DOWNLOAD              =ngramDownload.sh
+NGRAM_DISCARD_UNKNOWN_WORDS =ngramDiscardUnknownWords
+NGRAM_REMOVE_INVALID_WEIGHTS=ngramRemoveInvalidWeights
+
+##############################
+#### シンボルファイルなど ####
+##############################
 SYMB_WORD=./word_symbols.txt
 SYMB_CHAR=./character_symbols.txt
 SYMB_BIN=./binary_symbols.txt
 PRON_WORD=./word_prons.txt
 
-FST_INPUT=./input.fst
-FST_INPUT_DICT=./input_dict.fst FST_INPUT_DICT_NGRAM=./input_dict_ngram.fst FST_DICT=./dict.fst
 FST_CONTEXT=./context.fst
 FST_CONTEXT_ABSORB=./context_absorb.fst
 FST_CONTEXT_GENERATE=./context_generate.fst
@@ -45,7 +60,13 @@ $(IMG_NGRAM_FOR_HAIKU_WITH_CONTEXT): $(FST_NGRAM_FOR_HAIKU_WITH_CONTEXT) $(SYMB_
 #### シンボルファイルの生成 ####
 ################################
 
-$(SYMB_CHAR) $(SYMB_WORD) $(SYMB_BIN) $(PRON_WORD): makeSymbolFiles
+$(BCCWJ_LIST):
+	wget -N -P $(DATA_DIR) \
+		https://pj.ninjal.ac.jp/corpus_center/bccwj/data-files/frequency-list/BCCWJ_frequencylist_suw_ver1_0.zip
+	unzip -d $(DATA_DIR) $(@:%.tsv=%.zip)
+
+
+$(SYMB_CHAR) $(SYMB_WORD) $(SYMB_BIN) $(PRON_WORD): makeSymbolFiles $(BCCWJ_LIST)
 	./$< -c $(SYMB_CHAR) -w $(SYMB_WORD) -b $(SYMB_BIN)
 
 
@@ -200,16 +221,13 @@ makeContextGenerateFst: makeContextGenerateFst.cpp $(INC_MAKE_FST_CONTEXT)
 	g++ -o $@ $^
 
 
-#
-# Makefile上でのfor文の挙動がわからないので、展開して書く
-#
-ngramDiscardUnknownWords: ngramDiscardUnknownWords.cpp $(INC_NGRAM)
+$(NGRAM_SORT)                  : $(NGRAM_SORT).cpp                   $(INC_NGRAM)
 	g++ -o $@ $^
-ngramSort:                ngramSort.cpp $(INC_NGRAM)
+$(NGRAM_MERGE)                 : $(NGRAM_MERGE).cpp                  $(INC_NGRAM)
 	g++ -o $@ $^
-ngramMerge:               ngramMerge.cpp $(INC_NGRAM)
+$(NGRAM_DISCARD_UNKNOWN_WORDS) : $(NGRAM_DISCARD_UNKNOWN_WORDS).cpp  $(INC_NGRAM)
 	g++ -o $@ $^
-ngramRemoveInvalidWeights: ngramRemoveInvalidWeights.cpp $(INC_NGRAM)
+$(NGRAM_REMOVE_INVALID_WEIGHTS): $(NGRAM_REMOVE_INVALID_WEIGHTS).cpp $(INC_NGRAM)
 	g++ -o $@ $^
 
 
@@ -218,6 +236,15 @@ ngramRemoveInvalidWeights: ngramRemoveInvalidWeights.cpp $(INC_NGRAM)
 #######################
 
 NGRAM_TEMP_DIR=./ngram_temp_dir
+
+GM1_XZ=data/nwc2010-ngrams/word/over999/1gms/1gm-0000.xz
+GM2_XZ=data/nwc2010-ngrams/word/over999/2gms/2gm-0000.xz
+GM3_XZ=data/nwc2010-ngrams/word/over999/3gms/3gm-0000.xz
+GM4_XZ=data/nwc2010-ngrams/word/over999/4gms/4gm-0000.xz
+GM5_XZ=data/nwc2010-ngrams/word/over999/5gms/5gm-0000.xz
+GM6_XZ=data/nwc2010-ngrams/word/over999/6gms/6gm-0000.xz
+GM7_XZ=data/nwc2010-ngrams/word/over999/7gms/7gm-0000.xz
+
 GM1=$(NGRAM_TEMP_DIR)/1gm.txt
 GM2=$(NGRAM_TEMP_DIR)/2gm.txt
 GM3=$(NGRAM_TEMP_DIR)/3gm.txt
@@ -235,44 +262,68 @@ GM5_SRT=$(GM5:%.txt=%_srt.txt)
 GM6_SRT=$(GM6:%.txt=%_srt.txt)
 GM7_SRT=$(GM7:%.txt=%_srt.txt)
 
-$(GM1):
-	mkdir -p $(NGRAM_TEMP_DIR)
-	./ngramExtract.sh -n 1 > $@
-$(GM2):
-	mkdir -p $(NGRAM_TEMP_DIR)
-	./ngramExtract.sh -n 2 > $@
-$(GM3):
-	mkdir -p $(NGRAM_TEMP_DIR)
-	./ngramExtract.sh -n 3 > $@
-$(GM4):
-	mkdir -p $(NGRAM_TEMP_DIR)
-	./ngramExtract.sh -n 4 > $@
-$(GM5):
-	mkdir -p $(NGRAM_TEMP_DIR)
-	./ngramExtract.sh -n 5 > $@
-$(GM6):
-	mkdir -p $(NGRAM_TEMP_DIR)
-	./ngramExtract.sh -n 6 > $@
-$(GM7):
-	mkdir -p $(NGRAM_TEMP_DIR)
-	./ngramExtract.sh -n 7 > $@
+$(GM1_XZ):
+	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/1gms/1gm-0000.xz
+	touch ./$@
+$(GM2_XZ):
+	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/2gms/2gm-0000.xz
+	touch ./$@
+$(GM3_XZ):                                                                                    
+	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/3gms/3gm-0000.xz
+	touch ./$@
+$(GM4_XZ):                                                                                    
+	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/4gms/4gm-0000.xz
+	touch ./$@
+$(GM5_XZ):                                                                                    
+	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/5gms/5gm-0000.xz
+	touch ./$@
+$(GM6_XZ):                                                                                    
+	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/6gms/6gm-0000.xz
+	touch ./$@
+$(GM7_XZ):                                                                                    
+	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/7gms/7gm-0000.xz
+	touch ./$@
 
-$(GM1_SRT): $(GM1) ngramDiscardUnknownWords ngramSort $(SYMB_WORD)
-	./ngramDiscardUnknownWords -i $< | ./ngramSort > $@
-$(GM2_SRT): $(GM2) ngramDiscardUnknownWords ngramSort $(SYMB_WORD)
-	./ngramDiscardUnknownWords -i $< | ./ngramSort > $@
-$(GM3_SRT): $(GM3) ngramDiscardUnknownWords ngramSort $(SYMB_WORD)
-	./ngramDiscardUnknownWords -i $< | ./ngramSort > $@
-$(GM4_SRT): $(GM4) ngramDiscardUnknownWords ngramSort $(SYMB_WORD)
-	./ngramDiscardUnknownWords -i $< | ./ngramSort > $@
-$(GM5_SRT): $(GM5) ngramDiscardUnknownWords ngramSort $(SYMB_WORD)
-	./ngramDiscardUnknownWords -i $< | ./ngramSort > $@
-$(GM6_SRT): $(GM6) ngramDiscardUnknownWords ngramSort $(SYMB_WORD)
-	./ngramDiscardUnknownWords -i $< | ./ngramSort > $@
-$(GM7_SRT): $(GM7) ngramDiscardUnknownWords ngramSort $(SYMB_WORD)
-	./ngramDiscardUnknownWords -i $< | ./ngramSort > $@
 
-$(NGM): ngramMerge \
+
+$(GM1): $(GM1_XZ)
+	mkdir -p $(NGRAM_TEMP_DIR)   # make temporary directory
+	./$(NGRAM_EXTRACT) -n 1 > $@ # extract 1-gram data
+$(GM2): $(GM2_XZ)
+	mkdir -p $(NGRAM_TEMP_DIR)
+	./$(NGRAM_EXTRACT) -n 2 > $@
+$(GM3): $(GM3_XZ)
+	mkdir -p $(NGRAM_TEMP_DIR)
+	./$(NGRAM_EXTRACT) -n 3 > $@
+$(GM4): $(GM4_XZ)
+	mkdir -p $(NGRAM_TEMP_DIR)
+	./$(NGRAM_EXTRACT) -n 4 > $@
+$(GM5): $(GM5_XZ)
+	mkdir -p $(NGRAM_TEMP_DIR)
+	./$(NGRAM_EXTRACT) -n 5 > $@
+$(GM6): $(GM6_XZ)
+	mkdir -p $(NGRAM_TEMP_DIR)
+	./$(NGRAM_EXTRACT) -n 6 > $@
+$(GM7): $(GM7_XZ)
+	mkdir -p $(NGRAM_TEMP_DIR)
+	./$(NGRAM_EXTRACT) -n 7 > $@
+
+$(GM1_SRT): $(GM1) $(NGRAM_DISCARD_UNKNOWN_WORDS) $(NGRAM_SORT) $(SYMB_WORD)
+	./$(NGRAM_DISCARD_UNKNOWN_WORDS) -i $< | ./$(NGRAM_SORT) > $@
+$(GM2_SRT): $(GM2) $(NGRAM_DISCARD_UNKNOWN_WORDS) $(NGRAM_SORT) $(SYMB_WORD)
+	./$(NGRAM_DISCARD_UNKNOWN_WORDS) -i $< | ./$(NGRAM_SORT) > $@
+$(GM3_SRT): $(GM3) $(NGRAM_DISCARD_UNKNOWN_WORDS) $(NGRAM_SORT) $(SYMB_WORD)
+	./$(NGRAM_DISCARD_UNKNOWN_WORDS) -i $< | ./$(NGRAM_SORT) > $@
+$(GM4_SRT): $(GM4) $(NGRAM_DISCARD_UNKNOWN_WORDS) $(NGRAM_SORT) $(SYMB_WORD)
+	./$(NGRAM_DISCARD_UNKNOWN_WORDS) -i $< | ./$(NGRAM_SORT) > $@
+$(GM5_SRT): $(GM5) $(NGRAM_DISCARD_UNKNOWN_WORDS) $(NGRAM_SORT) $(SYMB_WORD)
+	./$(NGRAM_DISCARD_UNKNOWN_WORDS) -i $< | ./$(NGRAM_SORT) > $@
+$(GM6_SRT): $(GM6) $(NGRAM_DISCARD_UNKNOWN_WORDS) $(NGRAM_SORT) $(SYMB_WORD)
+	./$(NGRAM_DISCARD_UNKNOWN_WORDS) -i $< | ./$(NGRAM_SORT) > $@
+$(GM7_SRT): $(GM7) $(NGRAM_DISCARD_UNKNOWN_WORDS) $(NGRAM_SORT) $(SYMB_WORD)
+	./$(NGRAM_DISCARD_UNKNOWN_WORDS) -i $< | ./$(NGRAM_SORT) > $@
+
+$(NGM): $(NGRAM_MERGE) \
 	$(GM1_SRT) \
 	$(GM2_SRT) \
 	$(GM3_SRT) \
@@ -284,18 +335,15 @@ $(NGM): ngramMerge \
 		$(GM3_SRT) \
 		$(GM4_SRT) > $@
 
-#
-# ngramread コマンドにはいくつか罠がある.
-#
-# - データが予めソートされていなければならない.
-#   -- 上で頑張ってソートしているのはそのため.
-# - 空文字のデフォルトは <epsilon>. なぜ <eps> ではないのか...
-# - BOS のデフォルトは <s>.  拾ってきたデータでは <S>.
-# - EOS のデフォルトは </s>. 拾ってきたデータでは </S>.
-#
-$(FST_NGRAM): $(NGM) $(SYMB_WORD) ngramRemoveInvalidWeights
-	ngramread --epsilon_symbol="<eps>" --start_symbol="<S>" --end_symbol="</S>" --symbols=$(SYMB_WORD) $< > $(@:%.fst=%_raw.fst)
-	fstprint $(@:%.fst=%_raw.fst) | ./ngramRemoveInvalidWeights | fstcompile --arc_type="standard" --isymbols=$(SYMB_WORD) --osymbols=$(SYMB_WORD) --keep_isymbols --keep_osymbols > $@
+$(FST_NGRAM:%.fst=%_raw.fst): $(NGM) $(SYMB_WORD)
+	ngramread \
+		--epsilon_symbol="<eps>" \
+		--start_symbol="<S>"     \
+		--end_symbol="</S>"      \
+		--symbols=$(SYMB_WORD) $< > $@
+
+$(FST_NGRAM): $(FST_NGRAM:%.fst=%_raw.fst) $(NGRAM_REMOVE_INVALID_WEIGHTS)
+	fstprint $< | ./$(NGRAM_REMOVE_INVALID_WEIGHTS) | fstcompile --arc_type="standard" --isymbols=$(SYMB_WORD) --osymbols=$(SYMB_WORD) --keep_isymbols --keep_osymbols > $@
 
 .PHONY: clean
 clean: 
