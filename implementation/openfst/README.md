@@ -1,72 +1,83 @@
-# openFst を利用した分かち書きトランスデューサ
+# openFst, openGrm を利用した俳句生成
 
 ## 必要なものをインストール
 
 インストールの手順についてはこちらのサイトを参考にさせていただきました. \
 https://aghriss.github.io/posts/2018/01/01/OpenFSTubuntu.html
 
-1. 以下のサイトから openfst-(version).tar.gz をダウンロード \
-   http://www.openfst.org/twiki/bin/view/FST/FstDownload
-2. Graphviz のインストール
-  ```
-  $ sudo apt install graphviz
-  ```
+### Graphviz
+```
+$ sudo apt install graphviz
+```
+### openFst
+  1. 以下のサイトから openfst-(version).tar.gz をダウンロード \
+     http://www.openfst.org/twiki/bin/view/FST/FstDownload
+  2. ダウンロードしたファイルのあるディレクトリに移動し、解凍します
+    ```
+    $ tar -xzf openfst-1.7.7.tar.gz # この場合は version 1.7.7
+    ```
+  
+  3. 作成されたディレクトリに移動し、インストールします
+    ```
+    $ cd openfst-1.7.7
+    $ ./configure --enable-far=true
+    $ make
+    $ sudo make install
+    ```
+  
+  4. LD\_LIBRARY\_PATH の設定
+    ```
+    $ echo "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib" >> ~/.bashrc
+    $ source ~/.bashrc
+    ```
+  
+  5. 正常にインストールされていることを確認
+    ```
+    $ fstinfo --help
+    ```
 
-3. ダウンロードしたファイルのあるディレクトリに移動し、解凍します
-  ```
-  $ tar -xzf openfst-1.7.7.tar.gz # この場合は version 1.7.7
-  ```
+### openGrm
+  1. 以下のサイトから ngram-(version).tar.gz をダウンロード \
+    http://www.opengrm.org/twiki/bin/view/GRM/NGramDownload
+  2. ダウンロードしたファイルのあるディレクトリに移動し、解凍します
+    ```
+    $ tar -xzf ngram-1.3.10.tar.gz # この場合は version 1.3.10
+    ```
+  3. 作成されたディレクトリに移動し、インストールします
+    ```
+    $ cd ngram-1.3.10
+    $ ./configure
+    $ make
+    $ sudo make install
+    ```
+  4. 正常にインストールされていることを確認
+    ```
+    $ ngraminfo --help
+    ```
 
-4. 作成されたディレクトリに移動し、インストールします
-  ```
-  $ cd openfst-1.7.7
-  $ ./configure --enable-far=true
-  $ make
-  $ sudo make install
-  ```
-
-5. LD\_LIBRARY\_PATH の設定
-  ```
-  $ echo "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib" >> ~/.bashrc
-  $ source ~/.bashrc
-  ```
-
-6. 正常にインストールされていることを確認
-  ```
-  $ fstinfo --help
-  ```
-
-7. 同様に、openGrm をインストールしてください。
 ## 使い方
 
-### 入力文字列の用意
-入力文字列は `./data/sample_input.txt` に保存してください.
+### prefix の用意
+prefix は `./data/haiku_prefix.txt` に保存してください.
+単語間は半角スペースで空けてください.
 #### 例
-
 ```
-すもももももももものうち
+人生 は
 ```
 
-### 辞書の用意
-辞書は `./data/sample_dictionary.txt` に保存してください.
+### context の用意
+context は `./data/context.txt` に保存してください.
+prefix と同様、単語間は半角スペースで空けてください.
 #### 例
-
-```./data/sample_dictionary.txt
-すもも
-もも
-も
-の
-もの
-うち
+```
+愛 と 言う
 ```
 
 ### 実行
-
 ```
 $ make
-$ ls
-comp.fst  data  dic_binary.fst  dic_sorted.fst  inc  inp_binary.fst  inp_sorted.fst  main  main.c  Makefile  README.md  result.dot  result.png  rmeps.fst
 ```
 `make` を実行すると `result.png` に結果が出力されます.
-
+初めて実行する場合には、必要なファイルのダウンロードがありますので、
+インターネットの接続状況にお気をつけください。
 
