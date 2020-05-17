@@ -19,9 +19,9 @@ $ sudo apt install graphviz
 
 3. 作成されたディレクトリに移動し、インストールします \
   ```
-  $ cd openfst-1.7.7 \
-  $ ./configure --enable-far=true \
-  $ make \
+  $ cd openfst-1.7.7
+  $ ./configure --enable-far=true
+  $ make
   $ sudo make install
   ```
 
@@ -37,23 +37,23 @@ $ sudo apt install graphviz
   ```
 
 ### openGrm
-  1. 以下のサイトから ngram-(version).tar.gz をダウンロード \
-    http://www.opengrm.org/twiki/bin/view/GRM/NGramDownload
-  2. ダウンロードしたファイルのあるディレクトリに移動し、解凍します \
-    ```
-    $ tar -xzf ngram-1.3.10.tar.gz # この場合は version 1.3.10
-    ```
-  3. 作成されたディレクトリに移動し、インストールします \
-    ```
-    $ cd ngram-1.3.10
-    $ ./configure
-    $ make
-    $ sudo make install
-    ```
-  4. 正常にインストールされていることを確認 \
-    ```
-    $ ngraminfo --help
-    ```
+1. 以下のサイトから ngram-(version).tar.gz をダウンロード \
+  http://www.opengrm.org/twiki/bin/view/GRM/NGramDownload
+2. ダウンロードしたファイルのあるディレクトリに移動し、解凍します \
+  ```
+  $ tar -xzf ngram-1.3.10.tar.gz # この場合は version 1.3.10
+  ```
+3. 作成されたディレクトリに移動し、インストールします \
+  ```
+  $ cd ngram-1.3.10
+  $ ./configure
+  $ make
+  $ sudo make install
+  ```
+4. 正常にインストールされていることを確認 \
+  ```
+  $ ngraminfo --help
+  ```
 
 ## 使い方
 
