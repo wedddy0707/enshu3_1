@@ -20,8 +20,14 @@ $ sudo apt install graphviz
   3. 作成されたディレクトリに移動し、インストールします \
     ```
     $ cd openfst-1.7.7
+    ```
+    ```
     $ ./configure --enable-far=true
+    ```
+    ```
     $ make
+    ```
+    ```
     $ sudo make install
     ```
   
