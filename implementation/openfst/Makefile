@@ -10,6 +10,21 @@ CONTEXT=./data/context.txt
 ########################
 BCCWJ_LIST=$(DATA_DIR)/BCCWJ_frequencylist_suw_ver1_0.tsv
 
+############################################
+#### シンボルファイル作成用のプログラム ####
+############################################
+MAKE_SYMBOL_FILES=makeSymbolFiles
+
+################################
+#### FST 作成用のプログラム ####
+################################
+MAKE_INPUT_FST           =makeInputFst
+MAKE_DICT_FST            =makeDictFst
+MAKE_CONTEXT_ABSORB_FST  =makeContextAbsorbFst
+MAKE_CONTEXT_GENERATE_FST=makeContextGenerateFst
+MAKE_HAIKU_PREFIX_FST    =makeHaikuPrefixFst
+MAKE_HAIKU_JUDGE_FST     =makeHaikuJudgeFst
+
 #########################################
 #### N-Gram データ加工用のプログラム ####
 #########################################
@@ -76,41 +91,18 @@ $(SYMB_CHAR) $(SYMB_WORD) $(SYMB_BIN) $(PRON_WORD): makeSymbolFiles $(BCCWJ_LIST
 ###### FST の生成と合成 ######
 ##############################
 
-#### input fst の生成
-
-$(FST_INPUT): makeInputFst $(INPUT_STR) $(SYMB_CHAR) 
+$(FST_INPUT)           : $(MAKE_INPUT_FST)            $(SYMB_CHAR) $(INPUT_STR)
 	./$< -o $@ -i $(INPUT_STR) -c $(SYMB_CHAR)
-
-
-#### dictionary fst の生成
-
-$(FST_DICT) : makeDictFst  $(SYMB_CHAR) $(SYMB_WORD)
+$(FST_DICT)            : $(MAKE_DICT_FST)             $(SYMB_CHAR) $(SYMB_WORD)
 	./$< -o $@ -c $(SYMB_CHAR) -w $(SYMB_WORD)
-
-
-#### context absorb fst の生成
-
-$(FST_CONTEXT_ABSORB): makeContextAbsorbFst $(SYMB_WORD) $(CONTEXT)
+$(FST_CONTEXT_ABSORB)  : $(MAKE_CONTEXT_ABSORB_FST)   $(SYMB_WORD) $(CONTEXT)
 	./$< -o $@ -w $(SYMB_WORD) -i $(CONTEXT)
-
-
-#### context generate fst の生成 ####
-
-$(FST_CONTEXT_GENERATE): makeContextGenerateFst $(SYMB_WORD) $(CONTEXT)
+$(FST_CONTEXT_GENERATE): $(MAKE_CONTEXT_GENERATE_FST) $(SYMB_WORD) $(CONTEXT)
 	./$< -o $@ -w $(SYMB_WORD) -i $(CONTEXT)
-
-
-#### haiku judge fst の生成
-
-$(FST_HAIKU_JUDGE): makeHaikuJudge $(SYMB_WORD) $(SYMB_BIN) $(PRON_WORD)
+$(FST_HAIKU_JUDGE)     : $(MAKE_HAIKU_JUDGE_FST)      $(SYMB_WORD) $(SYMB_BIN) $(PRON_WORD)
 	./$< -o $@ -w $(SYMB_WORD) -p $(PRON_WORD)
-
-
-#### hauku prefix fst の生成
-
-$(FST_HAIKU_PREFIX): makeHaikuPrefix $(SYMB_WORD) $(HAIKU_PRF)
+$(FST_HAIKU_PREFIX)    : $(MAKE_HAIKU_PREFIX_FST)     $(SYMB_WORD) $(HAIKU_PRF)
 	./$< -o $@ -w $(SYMB_WORD) -i $(HAIKU_PRF)
-
 
 #### context_generate `compose` ngram `compose` context_absorb
 
@@ -205,19 +197,19 @@ INC_NGRAM = \
 					 	./inc/symbol.cpp \
 						./inc/symbol.h
 
-makeSymbolFiles: makeSymbolFiles.cpp $(INC_MAKE_SYMBOL_FILES)
+$(MAKE_SYMBOL_FILES)        : $(MAKE_SYMBOL_FILES).cpp         $(INC_MAKE_SYMBOL_FILES)
 	g++ -o $@ $^
-makeInputFst: makeInputFst.cpp $(INC_MAKE_FST_INPUT)
+$(MAKE_INPUT_FST)           : $(MAKE_INPUT_FST).cpp            $(INC_MAKE_FST_INPUT)
 	g++ -o $@ $^
-makeDictFst: makeDictFst.cpp $(INC_MAKE_FST_DICT)
+$(MAKE_DICT_FST)            : $(MAKE_DICT_FST).cpp             $(INC_MAKE_FST_DICT)
 	g++ -o $@ $^
-makeHaikuJudge: makeHaikuJudge.cpp $(INC_MAKE_HAIKU_JUDGE)
+$(MAKE_HAIKU_JUDGE_FST)     : $(MAKE_HAIKU_JUDGE_FST).cpp      $(INC_MAKE_HAIKU_JUDGE)
 	g++ -o $@ $^
-makeHaikuPrefix: makeHaikuPrefix.cpp $(INC_MAKE_HAIKU_PREFIX)
+$(MAKE_HAIKU_PREFIX_FST)    : $(MAKE_HAIKU_PREFIX_FST).cpp     $(INC_MAKE_HAIKU_PREFIX)
 	g++ -o $@ $^
-makeContextAbsorbFst: makeContextAbsorbFst.cpp $(INC_MAKE_FST_CONTEXT)
+$(MAKE_CONTEXT_ABSORB_FST)  : $(MAKE_CONTEXT_ABSORB_FST).cpp   $(INC_MAKE_FST_CONTEXT)
 	g++ -o $@ $^
-makeContextGenerateFst: makeContextGenerateFst.cpp $(INC_MAKE_FST_CONTEXT)
+$(MAKE_CONTEXT_GENERATE_FST): $(MAKE_CONTEXT_GENERATE_FST).cpp $(INC_MAKE_FST_CONTEXT)
 	g++ -o $@ $^
 
 
@@ -237,13 +229,13 @@ $(NGRAM_REMOVE_INVALID_WEIGHTS): $(NGRAM_REMOVE_INVALID_WEIGHTS).cpp $(INC_NGRAM
 
 NGRAM_TEMP_DIR=./ngram_temp_dir
 
-GM1_XZ=data/nwc2010-ngrams/word/over999/1gms/1gm-0000.xz
-GM2_XZ=data/nwc2010-ngrams/word/over999/2gms/2gm-0000.xz
-GM3_XZ=data/nwc2010-ngrams/word/over999/3gms/3gm-0000.xz
-GM4_XZ=data/nwc2010-ngrams/word/over999/4gms/4gm-0000.xz
-GM5_XZ=data/nwc2010-ngrams/word/over999/5gms/5gm-0000.xz
-GM6_XZ=data/nwc2010-ngrams/word/over999/6gms/6gm-0000.xz
-GM7_XZ=data/nwc2010-ngrams/word/over999/7gms/7gm-0000.xz
+GM1_XZ=$(DATA_DIR)/nwc2010-ngrams/word/over999/1gms/1gm-0000.xz
+GM2_XZ=$(DATA_DIR)/nwc2010-ngrams/word/over999/2gms/2gm-0000.xz
+GM3_XZ=$(DATA_DIR)/nwc2010-ngrams/word/over999/3gms/3gm-0000.xz
+GM4_XZ=$(DATA_DIR)/nwc2010-ngrams/word/over999/4gms/4gm-0000.xz
+GM5_XZ=$(DATA_DIR)/nwc2010-ngrams/word/over999/5gms/5gm-0000.xz
+GM6_XZ=$(DATA_DIR)/nwc2010-ngrams/word/over999/6gms/6gm-0000.xz
+GM7_XZ=$(DATA_DIR)/nwc2010-ngrams/word/over999/7gms/7gm-0000.xz
 
 GM1=$(NGRAM_TEMP_DIR)/1gm.txt
 GM2=$(NGRAM_TEMP_DIR)/2gm.txt
@@ -263,25 +255,25 @@ GM6_SRT=$(GM6:%.txt=%_srt.txt)
 GM7_SRT=$(GM7:%.txt=%_srt.txt)
 
 $(GM1_XZ):
-	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/1gms/1gm-0000.xz
+	wget -N -P $(DATA_DIR) -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/1gms/1gm-0000.xz
 	touch ./$@
 $(GM2_XZ):
-	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/2gms/2gm-0000.xz
+	wget -N -P $(DATA_DIR) -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/2gms/2gm-0000.xz
 	touch ./$@
 $(GM3_XZ):                                                                                    
-	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/3gms/3gm-0000.xz
+	wget -N -P $(DATA_DIR) -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/3gms/3gm-0000.xz
 	touch ./$@
 $(GM4_XZ):                                                                                    
-	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/4gms/4gm-0000.xz
+	wget -N -P $(DATA_DIR) -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/4gms/4gm-0000.xz
 	touch ./$@
 $(GM5_XZ):                                                                                    
-	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/5gms/5gm-0000.xz
+	wget -N -P $(DATA_DIR) -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/5gms/5gm-0000.xz
 	touch ./$@
 $(GM6_XZ):                                                                                    
-	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/6gms/6gm-0000.xz
+	wget -N -P $(DATA_DIR) -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/6gms/6gm-0000.xz
 	touch ./$@
 $(GM7_XZ):                                                                                    
-	wget -N -P data -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/7gms/7gm-0000.xz
+	wget -N -P $(DATA_DIR) -xnH https://s3-ap-northeast-1.amazonaws.com/nwc2010-ngrams/word/over999/7gms/7gm-0000.xz
 	touch ./$@
 
 
@@ -327,13 +319,20 @@ $(NGM): $(NGRAM_MERGE) \
 	$(GM1_SRT) \
 	$(GM2_SRT) \
 	$(GM3_SRT) \
-	$(GM4_SRT)
+	$(GM4_SRT) \
+	$(GM5_SRT) \
+	$(GM6_SRT) \
+	$(GM7_SRT)
 
 	./$< \
 		$(GM1_SRT) \
 		$(GM2_SRT) \
 		$(GM3_SRT) \
-		$(GM4_SRT) > $@
+		$(GM4_SRT) \
+		$(GM5_SRT) \
+		$(GM6_SRT) \
+		$(GM7_SRT) \
+		> $@
 
 $(FST_NGRAM:%.fst=%_raw.fst): $(NGM) $(SYMB_WORD)
 	ngramread \
@@ -347,8 +346,11 @@ $(FST_NGRAM): $(FST_NGRAM:%.fst=%_raw.fst) $(NGRAM_REMOVE_INVALID_WEIGHTS)
 
 .PHONY: clean
 clean: 
-	rm -f makeInputFst makeSymbolFiles makeDictFst makeHaikuJudge makeHaikuPrefix
-	rm -f makeContextAbsorbFst makeContextGenerateFst
-	rm -f ngramDiscardUnknownWords ngramSort ngramMerge ngramRemoveInvalidWeights
-	rm -f $(GM1_SRT) $(GM2_SRT) $(GM3_SRT) $(GM4_SRT) $(GM5_SRT) $(GM6_SRT) $(GM7_SRT)
-	rm -f *.dot *.fst *.png *.txt temp*
+	rm -f \
+		$(SYMB_WORD) $(SYMB_CHAR) $(SYMB_BIN) $(PRON_WORD) \
+		$(MAKE_SYMBOL_FILES) \
+		$(MAKE_INPUT_FST) $(MAKE_DICT_FST) \
+		$(MAKE_HAIKU_PREFIX_FST) $(MAKE_HAIKU_JUDGE_FST) \
+		$(MAKE_CONTEXT_ABSORB_FST) $(MAKE_CONTEXT_GENERATE_FST) \
+		$(NGRAM_DISCARD_UNKNOWN_WORDS) $(NGRAM_SORT) $(NGRAM_MERGE) $(NGRAM_REMOVE_INVALID_WEIGHTS) \
+		*.dot *.fst *.png temp*
