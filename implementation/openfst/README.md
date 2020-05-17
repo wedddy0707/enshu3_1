@@ -10,7 +10,7 @@ https://aghriss.github.io/posts/2018/01/01/OpenFSTubuntu.html
 $ sudo apt install graphviz
 ```
 ### openFst
-1. 以下のサイトから openfst-(version).tar.gz をダウンロード
+1. 以下のサイトから openfst-(version).tar.gz をダウンロード \
    http://www.openfst.org/twiki/bin/view/FST/FstDownload
 2. ダウンロードしたファイルのあるディレクトリに移動し、解凍します
   ```
