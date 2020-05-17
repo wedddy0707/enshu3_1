@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
           );
     } else if (l[l.size()-1]==L"Infinity\n") {
       // 重さ無限の辺など、存在しないのと一緒なので消す.
-      put_warning(argv[0],L"Warning: Infinity Detected in "+std::wstring(line));
+      put_warning(argv[0],L"Warning: Infinity Detected in "+find_and_erase(line,L"\n"));
     } else {
       wchar_t* end;
       double   log_prop = (-1.0)*(double)std::wcstod(l[l.size()-1].c_str(),&end);
